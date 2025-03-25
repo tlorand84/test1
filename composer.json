@@ -1,16 +1,16 @@
 {
-    "name": "paysera/commission-task-skeleton",
-    "description": "Skeleton for Paysera recruitment task",
+    "name": "tlorand84/banking-test",
+    "description": "Banking test",
     "keywords": [],
     "type": "project",
     "autoload": {
         "psr-4": {
-            "Paysera\\CommissionTask\\": "src"
+            "BankingTest\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Paysera\\CommissionTask\\Tests\\": "tests"
+            "BankingTest\\Tests\\": "tests"
         }
     },
     "require": {

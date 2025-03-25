@@ -1,8 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
-namespace Paysera\CommissionTask\Service;
+namespace App\Service;
 
 class Math
 {
@@ -16,5 +14,10 @@ class Math
     public function add(string $leftOperand, string $rightOperand): string
     {
         return bcadd($leftOperand, $rightOperand, $this->scale);
+    }
+
+    public function remove(string $leftOperand, string $rightOperand): string
+    {
+        return bcsub($leftOperand, $rightOperand, $this->scale);
     }
 }
