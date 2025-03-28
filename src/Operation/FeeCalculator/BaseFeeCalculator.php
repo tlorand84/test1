@@ -8,7 +8,7 @@ class BaseFeeCalculator implements OperationFeeCalculatorInterface
 {
     protected const FEE_PERCENTAGE = 0;
 
-    public function __construct(protected Operation $data)
+    public function __construct(protected Operation $operation)
     {
     }
 
@@ -17,6 +17,6 @@ class BaseFeeCalculator implements OperationFeeCalculatorInterface
      */
     public function calculateFee(): float
     {
-        return ceil($this->data->getAmount() * static::FEE_PERCENTAGE) / 100;
+        return ceil($this->operation->getAmount() * static::FEE_PERCENTAGE) / 100;
     }
 }
