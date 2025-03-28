@@ -1,19 +1,39 @@
 <?php
 
-namespace App\Service\CsvReader;
+declare(strict_types=1);
 
-use App\Service\OperationFeeCalculator\OperationConstants;
-use App\Service\OperationFeeCalculator\OperatorInterface;
+namespace App\Operation;
 
-class CsvRow implements OperatorInterface
+class Operation
 {
+    public const USER_TYPE_PRIVATE = 'private';
+    public const USER_TYPE_BUSINESS = 'business';
+    public const OPERATION_TYPE_DEPOSIT = 'deposit';
+    public const OPERATION_TYPE_WITHDRAW = 'withdraw';
+
+    protected const USER_TYPES = [
+        self::USER_TYPE_PRIVATE,
+        self::USER_TYPE_BUSINESS,
+    ];
+
+    protected const OPERATION_TYPES = [
+        self::OPERATION_TYPE_DEPOSIT,
+        self::OPERATION_TYPE_WITHDRAW,
+    ];
+
+    private \DateTime $operationDate;
+
+    /**
+     * @throws \DateMalformedStringException
+     * @throws \InvalidArgumentException
+     */
     public function __construct(
         string $operationDate,
         private int $userId,
         private string $userType,
         private string $operationType,
         private float $amount,
-        private string $currency
+        private string $currency,
     ) {
         $this->operationDate = new \DateTime($operationDate);
         $this->validateUserType();
@@ -22,14 +42,14 @@ class CsvRow implements OperatorInterface
 
     private function validateUserType(): void
     {
-        if (!in_array($this->userType, OperationConstants::USER_TYPES)) {
+        if (!in_array($this->userType, static::USER_TYPES, true)) {
             throw new \InvalidArgumentException('Invalid user type');
         }
     }
 
     private function validateOperationType(): void
     {
-        if (!in_array($this->operationType, OperationConstants::OPERATION_TYPES)) {
+        if (!in_array($this->operationType, static::OPERATION_TYPES, true)) {
             throw new \InvalidArgumentException('Invalid operation type');
         }
     }
