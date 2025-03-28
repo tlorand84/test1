@@ -8,21 +8,21 @@ use App\Operation\Operation;
 
 class OperationFeeCalculatorFactory
 {
-    public static function createOperationFeeCalculator(Operation $data): OperationFeeCalculatorInterface
+    public static function createOperationFeeCalculator(Operation $operation): OperationFeeCalculatorInterface
     {
-        return match ($data->getOperationType()) {
-            Operation::OPERATION_TYPE_DEPOSIT => new Deposit($data),
-            Operation::OPERATION_TYPE_WITHDRAW => self::createWithdrawFeeCalculator($data),
-            default => throw new \InvalidArgumentException("Unsupported operation type: {$data->getOperationType()}"),
+        return match ($operation->getOperationType()) {
+            Operation::OPERATION_TYPE_DEPOSIT => new Deposit($operation),
+            Operation::OPERATION_TYPE_WITHDRAW => self::createWithdrawFeeCalculator($operation),
+            default => throw new \InvalidArgumentException("Unsupported operation type: {$operation->getOperationType()}"),
         };
     }
 
-    private static function createWithdrawFeeCalculator(Operation $data): OperationFeeCalculatorInterface
+    private static function createWithdrawFeeCalculator(Operation $operation): OperationFeeCalculatorInterface
     {
-        if ($data->getUserType() === Operation::USER_TYPE_PRIVATE) {
-            return new PrivateWithdraw($data);
+        if ($operation->getUserType() === Operation::USER_TYPE_PRIVATE) {
+            return new PrivateWithdraw($operation);
         }
 
-        return new BusinessWithdraw($data);
+        return new BusinessWithdraw($operation);
     }
 }

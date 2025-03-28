@@ -2,7 +2,12 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . 'vendor/autoload.php';
+use App\Operation\CsvReader\CsvReader;
+use App\Operation\CsvReader\CsvRowMapper;
+use App\Operation\FeeCalculator\OperationFeeCalculatorFactory;
+use App\Operation\OperationsRepository;
+
+require_once __DIR__ . '/vendor/autoload.php';
 
 if ($argc < 2) {
     die("Usage: php index.php <csv_file_path>\n");
@@ -10,13 +15,19 @@ if ($argc < 2) {
 
 $csvFilePath = $argv[1];
 
-$csvReader = new App\Operation\CsvReader\CsvReader(
-    new App\Operation\CsvReader\CsvRowMapper(),
+$csvReader = new CsvReader(
+    new CsvRowMapper(),
     $csvFilePath
 );
 
-foreach ($csvReader->read() as $csvRow) {
-    $operation = App\Operation\FeeCalculator\OperationFeeCalculatorFactory::createOperationFeeCalculator($csvRow);
+try {
+    foreach ($csvReader->read() as $operation) {
+        $feeCalculator = OperationFeeCalculatorFactory::createOperationFeeCalculator($operation);
 
-    echo $operation->calculateFee() . PHP_EOL;
+        echo $feeCalculator->calculateFee() . PHP_EOL;
+
+        OperationsRepository::addOperation($operation);
+    }
+} catch (\DateMalformedStringException $e) {
+    echo 'ERROR occurred:' . $e->getMessage() . PHP_EOL;
 }

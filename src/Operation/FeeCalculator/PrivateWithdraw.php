@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace App\Operation\FeeCalculator;
 
-use App\Operation\Operation;
-
-class PrivateWithdraw implements OperationFeeCalculatorInterface
+class PrivateWithdraw extends BaseFeeCalculator
 {
-    public function __construct(private Operation $data)
-    {
-    }
+    protected const FEE_PERCENTAGE = 0.3;
 
     public function calculateFee(): float
     {
-        throw new \Exception('Not implemented yet');
+        return parent::calculateFee();
+    }
+
+    private function freeByCalendar()
+    {
+
     }
 }
