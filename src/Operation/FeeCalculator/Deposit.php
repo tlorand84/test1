@@ -6,5 +6,5 @@ namespace App\Operation\FeeCalculator;
 
 class Deposit extends BaseFeeCalculator
 {
-    protected const FEE_PERCENTAGE = 0.03;
+    protected const float FEE_PERCENTAGE = 0.03;
 }

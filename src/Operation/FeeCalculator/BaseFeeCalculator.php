@@ -6,7 +6,7 @@ use App\Operation\Operation;
 
 class BaseFeeCalculator implements OperationFeeCalculatorInterface
 {
-    protected const FEE_PERCENTAGE = 0;
+    protected const float FEE_PERCENTAGE = 0;
 
     public function __construct(protected Operation $operation)
     {
@@ -17,6 +17,11 @@ class BaseFeeCalculator implements OperationFeeCalculatorInterface
      */
     public function calculateFee(): float
     {
-        return ceil($this->operation->getAmount() * static::FEE_PERCENTAGE) / 100;
+        return ceil($this->getChargeableAmount() * static::FEE_PERCENTAGE) / 100;
+    }
+
+    protected function getChargeableAmount(): float
+    {
+        return $this->operation->getAmount();
     }
 }

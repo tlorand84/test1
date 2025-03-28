@@ -17,8 +17,12 @@ class OperationsRepository
     /**
      * @return Operation[]
      */
-    public static function getOperationsByUserId(int $userId): array
+    public static function getGivenWeekOperationsByUserId( int $weekdayTimestamp, int $userId): array
     {
-        return self::$operations[$userId] ?? [];
+        $monday = strtotime('monday this week', $weekdayTimestamp);
+
+        return array_filter(self::$operations[$userId] ?? [], static function (Operation $operation) use ($monday, $weekdayTimestamp) {
+            return $operation->getOperationTimestamp() >= $monday && $operation->getOperationTimestamp() <= $weekdayTimestamp;
+        });
     }
 }

@@ -21,7 +21,7 @@ class Operation
         self::OPERATION_TYPE_WITHDRAW,
     ];
 
-    private \DateTime $operationDate;
+    private int $operationTimestamp;
 
     /**
      * @throws \DateMalformedStringException
@@ -35,7 +35,7 @@ class Operation
         private float $amount,
         private string $currency,
     ) {
-        $this->operationDate = new \DateTime($operationDate);
+        $this->operationTimestamp = (new \DateTime($operationDate))->getTimestamp();
         $this->validateUserType();
         $this->validateOperationType();
     }
@@ -54,9 +54,9 @@ class Operation
         }
     }
 
-    public function getOperationDate(): \DateTime
+    public function getOperationTimestamp(): int
     {
-        return $this->operationDate;
+        return $this->operationTimestamp;
     }
 
     public function getUserId(): int
