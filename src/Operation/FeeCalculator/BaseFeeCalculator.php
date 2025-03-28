@@ -8,7 +8,7 @@ class BaseFeeCalculator implements OperationFeeCalculatorInterface
 {
     protected const FEE_PERCENTAGE = 0;
 
-    public function __construct(private Operation $data)
+    public function __construct(protected Operation $data)
     {
     }
 
