@@ -4,16 +4,7 @@ declare(strict_types=1);
 
 namespace App\Operation\FeeCalculator;
 
-use App\Operation\Operation;
-
-class BusinessWithdraw implements OperationFeeCalculatorInterface
+class BusinessWithdraw extends Deposit
 {
-    public function __construct(private Operation $data)
-    {
-    }
-
-    public function calculateFee(): float
-    {
-        throw new \Exception('Not implemented yet');
-    }
+    protected const FEE_PERCENTAGE = 0.5;
 }
