@@ -2,23 +2,44 @@
 
 namespace App\Tests\Functional;
 
+use App\CurrencyExchangeRate\ExchangeRateApi;
 use App\Operation\CsvReader\CsvRowMapper;
 use App\Operation\FeeCalculator\OperationFeeCalculatorFactory;
+use App\Operation\OperationsRepository;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class OperationTest extends TestCase
 {
+    private CsvRowMapper $csvRowMapper;
+    private ExchangeRateApi|MockObject $exchangeRateApi;
+
+    protected function setUp(): void
+    {
+        $this->csvRowMapper = new CsvRowMapper();
+
+        $this->exchangeRateApi = $this->createStub(ExchangeRateApi::class);
+        $this->exchangeRateApi
+            ->method('getExchangeRate')
+            ->willReturnMap([
+                ['EUR', 'JPY', 129.53],
+                ['EUR', 'USD', 1.1497],
+            ]);
+    }
+
     #[DataProvider('dataProviderForFeeCalculationTesting')]
     public function testOperationFeeCalculator(array $csvRow, float $expectedFee): void
     {
-        $csvMapper = new CsvRowMapper();
-        $feeCalculator = OperationFeeCalculatorFactory::createOperationFeeCalculator($csvMapper->mapRowToDto($csvRow));
-
-        $this->assertEquals(
-            $expectedFee,
-            $feeCalculator->calculateFee(),
+        $operation = $this->csvRowMapper->mapRowToDto($csvRow);
+        $feeCalculator = OperationFeeCalculatorFactory::createOperationFeeCalculator(
+            $operation,
+            $this->exchangeRateApi,
         );
+
+        $this->assertEquals($expectedFee, $feeCalculator->calculateFee());
+
+        OperationsRepository::addOperation($operation);
     }
 
     public static function dataProviderForFeeCalculationTesting(): array

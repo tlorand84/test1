@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Operation\FeeCalculator;
 
+use App\CurrencyExchangeRate\CurrencyExchangeRateInterface;
+use App\CurrencyExchangeRate\InvalidResponseException;
 use App\Operation\Operation;
 use App\Operation\OperationsRepository;
 
@@ -14,10 +16,19 @@ class PrivateWithdraw extends BaseFeeCalculator
     protected const string FREE_WEEKLY_CURRENCY = 'EUR';
     protected const int FREE_MAX_PER_WEEK = 3;
 
+    public function __construct(Operation $operation, protected CurrencyExchangeRateInterface $exchangeRate)
+    {
+        parent::__construct($operation);
+    }
+
+    /**
+     * @throws InvalidResponseException
+     */
     protected function getChargeableAmount(): float
     {
-        $prevUserOperations = OperationsRepository::getGivenWeekOperationsByUserId(
+        $prevUserOperations = OperationsRepository::getGivenWeekOperationsByTypeAndUserId(
             $this->operation->getOperationTimestamp(),
+            $this->operation->getOperationType(),
             $this->operation->getUserId(),
         );
 
@@ -30,22 +41,62 @@ class PrivateWithdraw extends BaseFeeCalculator
 
     /**
      * @param Operation[] $prevUserOperations
+     *
+     * @throws InvalidResponseException
      */
     private function getChargeableAmountByTotalAmounts(array $prevUserOperations): float
     {
-        // TODO convert all amount to eur if is not eur
-        $totalAmount = 0;
-        foreach ($prevUserOperations as $operation) {
-            $totalAmount += $operation->getAmount();
-        }
+        $prevTotalAmount = $this->getPreviousOperationsTotalAmount($prevUserOperations);
 
-        if ($totalAmount - static::FREE_WEEKLY_AMOUNT >= 0) {
+        // if previous operations exceeded the free limit -> apply fee to the entire amount of the new operation
+        if ($prevTotalAmount - static::FREE_WEEKLY_AMOUNT >= 0) {
             return $this->operation->getAmount();
         }
 
-        return max(0, $totalAmount - static::FREE_WEEKLY_AMOUNT + $this->operation->getAmount());
+        if ($this->operation->getCurrency() !== static::FREE_WEEKLY_CURRENCY) {
+            return $this->getChargeableAmountOfDifferentCurrency($prevTotalAmount);
+        }
 
+        return max(0.0, $prevTotalAmount + $this->operation->getAmount() - static::FREE_WEEKLY_AMOUNT);
+    }
 
-        // TODO if the current operation currency is not eur and this value is > 0, convert this value to the current operation's currency
+    /**
+     * Sums all the previous operations of the user from the actual week converting each amount to EUR (if it isn't already).
+     *
+     * @return float the total amount of the actual week in EUR (static::FREE_WEEKLY_CURRENCY)
+     *
+     * @throws InvalidResponseException
+     */
+    private function getPreviousOperationsTotalAmount(array $prevUserOperations): float
+    {
+        $totalAmount = 0.0;
+        foreach ($prevUserOperations as $operation) {
+            if ($operation->getCurrency() !== static::FREE_WEEKLY_CURRENCY) {
+                $inversExchangeRate = $this->exchangeRate->getExchangeRate(static::FREE_WEEKLY_CURRENCY, $operation->getCurrency());
+                $amount = $operation->getAmount() / $inversExchangeRate;
+            } else {
+                $amount = $operation->getAmount();
+            }
+
+            $totalAmount += $amount;
+        }
+
+        return $totalAmount;
+    }
+
+    /**
+     * If the current operation's currency differs from eur -> convert
+     * Sum with the user's total amount from this week (in eur) and remove the free amount to get the chargeable amount
+     * Convert back to the original currency.
+     *
+     * @throws InvalidResponseException
+     */
+    private function getChargeableAmountOfDifferentCurrency(float $prevTotalAmount): float
+    {
+        $inversExchangeRate = $this->exchangeRate->getExchangeRate(static::FREE_WEEKLY_CURRENCY, $this->operation->getCurrency());
+        $currentOperationAmount = $this->operation->getAmount() / $inversExchangeRate;
+        $chargeableAmount = max(0.0, $prevTotalAmount + $currentOperationAmount - static::FREE_WEEKLY_AMOUNT);
+
+        return $chargeableAmount * $inversExchangeRate;
     }
 }
