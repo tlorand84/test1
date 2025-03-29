@@ -10,7 +10,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
-class OperationTest extends TestCase
+class OperationFeeCalculatorTest extends TestCase
 {
     private CsvRowMapper $csvRowMapper;
     private ExchangeRateApi|MockObject $exchangeRateApi;
