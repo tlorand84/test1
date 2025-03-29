@@ -14,7 +14,8 @@ if ($argc < 2) {
     die("Usage: php index.php <csv_file_path>\n");
 }
 
-putenv("EXCHANGE_RATE_API_KEY=ef47c61660e8df73acbf74d2");
+$exchangerateApiKey = $argv[2] ?? 'ef47c61660e8df73acbf74d2';
+putenv("EXCHANGE_RATE_API_KEY=$exchangerateApiKey");
 
 $csvReader = new CsvReader(
     new CsvRowMapper(),
